@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="ur10e_robotiq" >
+
+  <xacro:macro name="ur10e_robotiq" params=
+   "prefix:=''
+    joint_limits_parameters_file:='$(find ur_description)/config/ur10e/joint_limits.yaml'
+    kinematics_parameters_file:='$(find ur_description)/config/ur10e/default_kinematics.yaml'
+    physical_parameters_file:='$(find ur_description)/config/ur10e/physical_parameters.yaml'
+    transmission_hw_interface:=hardware_interface/PositionJointInterface
+    safety_limits:=false
+    safety_pos_margin:=0.15
+    safety_k_position:=20 ">
+
+  <!-- ur10e -->
+  <xacro:include filename="$(find ur_description)/urdf/inc/ur10e_macro.xacro"/>
+  <xacro:ur10e_robot
+    prefix = "${prefix}"
+    joint_limits_parameters_file="${joint_limits_parameters_file}"
+    kinematics_parameters_file="${kinematics_parameters_file}"
+    physical_parameters_file="${physical_parameters_file}"
+    visual_parameters_file='$(find ur_description)/config/ur10e/visual_parameters.yaml'
+    transmission_hw_interface="${transmission_hw_interface}"
+    safety_limits="${safety_limits}"
+    safety_pos_margin="${safety_pos_margin}"
+    safety_k_position="${safety_k_position}"
+  />
+  
+  <!-- gripper -->
+  <xacro:include filename="$(find robotiq_2f_85_gripper_visualization)/urdf/robotiq_arg2f_85_model_macro.xacro" />
+
+  <joint name="rq_coupler_joint" type="fixed">
+    <parent link="tool0" />
+    <child  link = "robotiq_coupler" />
+    <origin xyz="0 0 0.01" rpy="0 0 ${0.5*pi}" />
+  </joint>
+
+  <link name="robotiq_coupler">
+  <visual>
+      <origin xyz="0 0 0.005" rpy="0 0 0" />
+       <geometry>
+        <cylinder radius="${0.075*0.5}" length="0.01"/>
+       </geometry>
+       <material name="RobotiqGrey">
+         <color rgba="0.1 0.1 0.1 1"/>
+       </material>
+  </visual>
+  <collision>
+      <origin xyz="0 0 0.02" rpy="0 0 0" />
+       <geometry>
+        <cylinder radius="${0.075*0.5}" length="0.04"/>
+       </geometry>
+       <material name="RobotiqGrey">
+         <color rgba="0.1 0.1 0.1 1"/>
+       </material>
+  </collision>
+  <inertial>
+    <mass value="0.5"/>
+    <inertia ixx="0.1" ixy="0.0" ixz="0.0" iyy="0.1" iyz="0.0" izz="0.4"/>
+  </inertial>
+  </link>
+
+  <joint name="robotiq_joint" type="fixed">
+    <parent link="robotiq_coupler" />
+    <child link = "robotiq_arg2f_base_link" />
+    <origin xyz="0.0 0.0 0.0" rpy="0 0 ${0.0*pi}" />
+  </joint>
+    <xacro:robotiq_arg2f_85 prefix=""/>
+
+  <link name="open_tip" />
+  <joint name="open_tip_joint" type="fixed">
+    <parent link="robotiq_coupler" />
+    <child  link = "open_tip" />
+    <origin xyz="0 0 0.149" rpy="0 0 ${0.5*pi}" />
+  </joint>
+
+  <link name="closed_tip" />
+  <joint name="closed_tip_joint" type="fixed">
+    <parent link="robotiq_coupler" />
+    <child  link = "closed_tip" />
+    <origin xyz="0 0 0.163" rpy="0 0 ${0.5*pi}" />
+  </joint>
+
+  <joint name="rq_connector_joint" type="fixed">
+  <parent link="robotiq_coupler" />
+  <child  link = "rq_connector" />
+  <origin xyz="-0.06 0 0" rpy="0 0 0" />
+  </joint>
+
+  <link name="rq_connector">
+     <visual>
+       <origin xyz="0 0 0" rpy="0 0 0" />
+       <geometry>
+         <box size="0.02 0.02 0.04" />
+       </geometry>
+       <material name="White">
+         <color rgba="1 1 1 1"/>
+       </material>
+     </visual>
+     <collision>
+     <origin xyz="0 0 0" rpy="0 0 0" />
+     <geometry>
+       <box size="0.02 0.02 0.04" />
+     </geometry>
+     <material name="White">
+       <color rgba="1 1 1 1"/>
+     </material>
+     </collision>
+  </link>
+
+</xacro:macro>
+
+</robot>
