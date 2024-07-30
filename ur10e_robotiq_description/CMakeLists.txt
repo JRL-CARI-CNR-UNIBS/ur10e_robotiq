@@ -15,6 +15,8 @@ target_link_libraries(${PROJECT_NAME} INTERFACE
   robotiq_description::robotiq_description
 )
 
+# INSTALL
+
 # Install the urdf files
 install(DIRECTORY urdf/
   DESTINATION share/${PROJECT_NAME}/urdf)
