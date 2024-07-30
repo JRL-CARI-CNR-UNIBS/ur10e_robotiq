@@ -4,4 +4,5 @@
   <!-- ur10e+robotiq -->
   <xacro:include filename="$(find ur10e_robotiq_description)/urdf/ur10e_robotiq.urdf.xacro" />
   <xacro:ur10e_robotiq /> <!--DO NOT DELETE -->
+  <link name="world" />
 </robot>
