@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="ur_robotiq" >
+
+  <!-- args -->
+  <xacro:arg name="fake_ur" default="true"/>
+  <xacro:arg name="fake_gripper" default="true"/>
+  <xacro:arg name="ur_type" default="ur10e"/>
+  <xacro:arg name="robot_name" default="ur10e"/>
+  <xacro:arg name="tf_prefix" default="ur10e_"/>
+  <xacro:arg name="robot_ip" default="192.168.10.2"/>
+  <xacro:arg name="tool_device_name" default="/tmp/ttyUR" />
+  <xacro:arg name="use_tool_communication" default="true"/>
+  <xacro:arg name="tool_tcp_port" default="54321"/>
+  <xacro:arg name="headless_mode" default="false"/>
+
+  <!-- UR properties -->
+  <xacro:property name="joint_limit_params" value="$(find ur_robotiq_description)/config/$(arg ur_type)/joint_limits.yaml"/>
+  <xacro:property name="kinematics_params" value="$(find ur_robotiq_description)/config/$(arg ur_type)/default_kinematics.yaml"/>
+  <xacro:property name="physical_params" value="$(find ur_robotiq_description)/config/$(arg ur_type)/physical_parameters.yaml"/>
+  <xacro:property name="visual_params" value="$(find ur_robotiq_description)/config/$(arg ur_type)/visual_parameters.yaml"/>
+  <xacro:property name="initial_positions_file" value="$(find ur_robotiq_description)/config/$(arg ur_type)/initial_positions.yaml"/>
+  <xacro:property name="generate_ros2_control" value="true"/>
+  <xacro:property name="transmission_hw_interface" value=""/>
+  <xacro:property name="safety_limits" value="false"/>
+  <xacro:property name="safety_pos_margin" value="0.15"/>
+  <xacro:property name="safety_k_position" value="20"/>
+  <xacro:property name="script_filename" value="$(find ur_client_library)/resources/external_control.urscript"/>
+  <xacro:property name="input_recipe_filename" value="$(find ur_robot_driver)/resources/rtde_input_recipe.txt"/>
+  <xacro:property name="output_recipe_filename" value="$(find ur_robot_driver)/resources/rtde_output_recipe.txt"/>
+  <xacro:property name="reverse_ip" value="0.0.0.0"/>
+  <xacro:property name="script_command_port" value="50004"/>
+  <xacro:property name="reverse_port" value="50001"/>
+  <xacro:property name="script_sender_port" value="50002"/>
+  <xacro:property name="trajectory_port" value="50003"/>
+  <xacro:property name="tool_voltage" value="24"/>
+  <xacro:property name="tool_parity" value="0"/>
+  <xacro:property name="tool_baud_rate" value="115200"/>
+  <xacro:property name="tool_stop_bits" value="1"/>
+  <xacro:property name="tool_rx_idle_chars" value="1.5"/>
+  <xacro:property name="tool_tx_idle_chars" value="3.5"/>
+  <xacro:property name="fake_sensor_commands" value="false"/>
+  <xacro:property name="sim_gazebo" value="false"/>
+  <xacro:property name="sim_ignition" value="false"/>
+  <xacro:property name="simulation_controllers" value=""/>
+  <xacro:property name="non_blocking_read" value="true"/>
+  <xacro:property name="robot_receive_timeout" value="0.04"/>
+  <xacro:property name="keep_alive_count" value="2"/>
+
+  <!-- Robotiq gripper properties -->
+  <xacro:property name="robotiq_sim_isaac" value="false"/>
+  <xacro:property name="robotiq_isaac_joint_commands" value="/isaac_joint_commands"/>
+  <xacro:property name="robotiq_isaac_joint_states" value="/isaac_joint_states"/>
+  <xacro:property name="robotiq_mock_sensor_commands" value="false"/>
+  <xacro:property name="robotiq_include_ros2_control" value="true"/>
+
+  <link name="world" />
+
+  <!-- ur+robotiq -->
+  <xacro:include filename="$(find ur_robotiq_description)/urdf/ur_robotiq.xacro" />
+  <xacro:ur_robotiq
+    fake_ur="$(arg fake_ur)"
+    fake_gripper="$(arg fake_gripper)"
+    ur_type="$(arg ur_type)"
+    robot_name="$(arg robot_name)"
+    tf_prefix="$(arg tf_prefix)"
+    joint_limits_parameters_file="${joint_limit_params}"
+    kinematics_parameters_file="${kinematics_params}"
+    physical_parameters_file="${physical_params}"
+    visual_parameters_file="${visual_params}"
+    safety_limits="${safety_limits}"
+    safety_pos_margin="${safety_pos_margin}"
+    safety_k_position="${safety_k_position}"
+    generate_ros2_control_tag="${generate_ros2_control}"
+    transmission_hw_interface="${transmission_hw_interface}"
+    fake_sensor_commands="${fake_sensor_commands}"
+    sim_gazebo="${sim_gazebo}"
+    sim_ignition="${sim_ignition}"
+    headless_mode="$(arg headless_mode)"
+    initial_positions="${initial_positions_file}"
+    use_tool_communication="$(arg use_tool_communication)"
+    tool_voltage="${tool_voltage}"
+    tool_parity="${tool_parity}"
+    tool_baud_rate="${tool_baud_rate}"
+    tool_stop_bits="${tool_stop_bits}"
+    tool_rx_idle_chars="${tool_rx_idle_chars}"
+    tool_tx_idle_chars="${tool_tx_idle_chars}"
+    tool_device_name="$(arg tool_device_name)"
+    tool_tcp_port="$(arg tool_tcp_port)"
+    robot_ip="$(arg robot_ip)"
+    script_filename="${script_filename}"
+    output_recipe_filename="${output_recipe_filename}"
+    input_recipe_filename="${input_recipe_filename}"
+    reverse_port="${reverse_port}"
+    script_sender_port="${script_sender_port}"
+    reverse_ip="${reverse_ip}"
+    script_command_port="${script_command_port}"
+    trajectory_port="${trajectory_port}"
+    non_blocking_read="${non_blocking_read}"
+    keep_alive_count="${keep_alive_count}"
+    robotiq_sim_ignition="${sim_ignition}"
+    robotiq_sim_isaac="${robotiq_sim_isaac}"
+    robotiq_isaac_joint_commands="${robotiq_isaac_joint_commands}"
+    robotiq_isaac_joint_states="${robotiq_isaac_joint_states}"
+    robotiq_mock_sensor_commands="${robotiq_mock_sensor_commands}"
+    robotiq_include_ros2_control="${robotiq_include_ros2_control}"
+  />
+  
+</robot>

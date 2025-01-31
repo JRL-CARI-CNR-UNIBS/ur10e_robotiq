@@ -1,0 +1,25 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: ur_robotiq_description
+    relative_path: urdf/ur_robotiq.urdf.xacro
+  srdf:
+    relative_path: config/ur_robotiq.srdf
+  package_settings:
+    author_name: Michele Ferrari
+    author_email: michele.ferrari@unibs.it
+    generated_timestamp: 1736782185
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity

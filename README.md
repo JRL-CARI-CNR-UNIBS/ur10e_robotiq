@@ -1,5 +1,5 @@
 
 ## Dependencies
 The following packages are needed:
-  - [Universal_Robots_ROS_Driver](https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git) 
-  - [robotiq](https://github.com/TAMS-Group/robotiq.git)
+  - [UniversalRobots/Universal_Robots_ROS2_Driver](https://github.com/UniversalRobots/Universal_Robots_ROS2_Driver.git)
+  - [PickNikRobotics/ros2_robotiq_gripper](https://github.com/PickNikRobotics/ros2_robotiq_gripper.git)
