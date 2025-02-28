@@ -3,18 +3,14 @@ controller_manager:
   ros__parameters:
     update_rate: 100  # Hz
 
-    ur_robot_controller:
+    joint_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController
-
-
-    gripper_controller:
-      type: position_controllers/GripperActionController
 
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
-ur_robot_controller:
+joint_trajectory_controller:
   ros__parameters:
     joints:
       - ur10e_shoulder_pan_joint
@@ -28,6 +24,4 @@ ur_robot_controller:
     state_interfaces:
       - position
       - velocity
-gripper_controller:
-  ros__parameters:
-    joint: robotiq_85_left_knuckle_joint
+    allow_nonzero_velocity_at_trajectory_end: false

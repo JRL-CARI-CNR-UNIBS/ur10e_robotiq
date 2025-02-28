@@ -3,6 +3,7 @@ from launch.actions import OpaqueFunction, DeclareLaunchArgument
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch_ros.parameter_descriptions import ParameterValue
 from ament_index_python.packages import get_package_share_directory
 from launch.conditions import IfCondition
 import os
@@ -29,29 +30,34 @@ def total_launcher(context: LaunchContext, *args, **kwargs):
 
 def namespace_nodes(ns_str):
     joint_state_publisher_node = Node(
-            package='joint_state_publisher_gui',
-            executable='joint_state_publisher_gui',
-            name='joint_state_publisher_gui',
-            # namespace=ns_str,
-            condition=IfCondition(LaunchConfiguration('js_publisher_gui'))
-        )
+        package='joint_state_publisher_gui',
+        executable='joint_state_publisher_gui',
+        name='joint_state_publisher_gui',
+        namespace=ns_str,
+        condition=IfCondition(LaunchConfiguration('js_publisher_gui'))
+    )
 
-    robot_description_content = Command(
-        [
-            PathJoinSubstitution([FindExecutable(name='xacro')]),
-            ' ',
-            PathJoinSubstitution([FindPackageShare('ur_robotiq_description'), "urdf", 'ur_robotiq.urdf.xacro']),
-            
-        ]
+    robot_description_content = ParameterValue(
+        Command(
+            [
+                PathJoinSubstitution([FindExecutable(name='xacro')]),
+                ' ',
+                PathJoinSubstitution([FindPackageShare('ur_robotiq_description'), "urdf", 'ur_robotiq.urdf.xacro']),
+                
+            ]
+        ),
+        value_type=str
     )
 
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
         name='robot_state_publisher',
+        namespace=ns_str,
         output='screen',
         parameters=[{'robot_description': robot_description_content}],
-        )
+    )
+
     return [robot_state_publisher_node, joint_state_publisher_node]
 
 

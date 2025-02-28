@@ -63,7 +63,12 @@
     robotiq_isaac_joint_commands:=/isaac_joint_commands
     robotiq_isaac_joint_states:=/isaac_joint_states
     robotiq_mock_sensor_commands:=false
-    robotiq_include_ros2_control:=true">
+    robotiq_include_ros2_control:=true
+    robotiq_use_socket_communication:=false
+    robotiq_ip_address:=192.168.10.2
+    robotiq_port:=63352
+    robotiq_connection_timeout:=30000
+    robotiq_activate_gripper_by_default:=1">
 
   <!-- UR robot -->
   <xacro:include filename="$(find ur_description)/urdf/ur_macro.xacro"/>
@@ -160,7 +165,12 @@
     isaac_joint_states="${robotiq_isaac_joint_states}"
     mock_sensor_commands="${robotiq_mock_sensor_commands}"
     include_ros2_control="${robotiq_include_ros2_control}"
-    com_port="${tool_device_name}">
+    com_port="${tool_device_name}"
+    use_socket_communication="${robotiq_use_socket_communication}"
+    ip_address="${robotiq_ip_address}"
+    port="${robotiq_port}"
+    connection_timeout="${robotiq_connection_timeout}"
+    activate_gripper_by_default="${robotiq_activate_gripper_by_default}">
     <origin xyz="0 0 0" rpy="0 0 ${-0.5*pi}" />
   </xacro:robotiq_gripper>
 

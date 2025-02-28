@@ -12,6 +12,11 @@
   <xacro:arg name="use_tool_communication" default="true"/>
   <xacro:arg name="tool_tcp_port" default="54321"/>
   <xacro:arg name="headless_mode" default="false"/>
+  <xacro:arg name="robotiq_use_socket_communication" default="false"/>
+  <xacro:arg name="robotiq_ip_address" default="192.168.10.2" />
+  <xacro:arg name="robotiq_port" default="63352" />
+  <xacro:arg name="robotiq_connection_timeout" default="30000" /> <!-- milliseconds -->
+  <xacro:arg name="robotiq_activate_gripper_by_default" default="1" /> <!-- 0: false, 1: true -->
 
   <!-- UR properties -->
   <xacro:property name="joint_limit_params" value="$(find ur_robotiq_description)/config/$(arg ur_type)/joint_limits.yaml"/>
@@ -52,6 +57,7 @@
   <xacro:property name="robotiq_isaac_joint_states" value="/isaac_joint_states"/>
   <xacro:property name="robotiq_mock_sensor_commands" value="false"/>
   <xacro:property name="robotiq_include_ros2_control" value="true"/>
+  
 
   <link name="world" />
 
@@ -103,6 +109,11 @@
     robotiq_isaac_joint_states="${robotiq_isaac_joint_states}"
     robotiq_mock_sensor_commands="${robotiq_mock_sensor_commands}"
     robotiq_include_ros2_control="${robotiq_include_ros2_control}"
+    robotiq_use_socket_communication="$(arg robotiq_use_socket_communication)"
+    robotiq_ip_address="$(arg robotiq_ip_address)"
+    robotiq_port="$(arg robotiq_port)"
+    robotiq_connection_timeout="$(arg robotiq_connection_timeout)"
+    robotiq_activate_gripper_by_default="$(arg robotiq_activate_gripper_by_default)"
   />
   
 </robot>

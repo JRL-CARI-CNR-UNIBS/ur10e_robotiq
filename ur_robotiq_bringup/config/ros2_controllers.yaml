@@ -1,5 +1,7 @@
 controller_manager:
   ros__parameters:
+    update_rate: 500.0
+
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
@@ -32,6 +34,9 @@ controller_manager:
 
     robotiq_activation_controller:
       type: robotiq_controllers/RobotiqActivationController
+
+    robotiq_forward_command_controller:
+      type: forward_command_controller/MultiInterfaceForwardCommandController
 
 
 speed_scaling_state_broadcaster:
@@ -78,6 +83,7 @@ joint_trajectory_controller:
     state_publish_rate: 100.0
     action_monitor_rate: 20.0
     allow_partial_joints_goal: false
+    allow_nonzero_velocity_at_trajectory_end: false
     constraints:
       stopped_velocity_tolerance: 0.2
       goal_time: 0.0
@@ -105,6 +111,7 @@ scaled_joint_trajectory_controller:
     state_publish_rate: 100.0
     action_monitor_rate: 20.0
     allow_partial_joints_goal: false
+    allow_nonzero_velocity_at_trajectory_end: false
     constraints:
       stopped_velocity_tolerance: 0.2
       goal_time: 0.0
@@ -145,6 +152,15 @@ robotiq_action_controller:
     goal_tolerance: 0.01
     joint: $(var tf_prefix)robotiq_85_left_knuckle_joint
     max_effort: 0.0
-    stall_timeout: 1.0
+    stall_timeout: 10.0
     stall_velocity_threshold: 0.001
+
+robotiq_activation_controller:
+  ros__parameters:
+    default: false
+
+robotiq_forward_command_controller:
+  ros__parameters:
+    joint: $(var tf_prefix)robotiq_85_left_knuckle_joint
+    interface_names: ['position', 'velocity', 'effort']
 

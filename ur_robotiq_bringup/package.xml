@@ -4,7 +4,7 @@
   <name>ur_robotiq_bringup</name>
   <version>0.0.0</version>
   <description>Package to control a UR Robot coupled with a Robotiq gripper </description>
-  <maintainer email="michele.ferrari@unibs.it">nyquist</maintainer>
+  <maintainer email="michele.ferrari@unibs.it">Michele Ferrari</maintainer>
   <license>BSD</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

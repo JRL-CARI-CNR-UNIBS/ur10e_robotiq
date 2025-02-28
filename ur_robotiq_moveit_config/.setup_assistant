@@ -7,7 +7,7 @@ moveit_setup_assistant_config:
   package_settings:
     author_name: Michele Ferrari
     author_email: michele.ferrari@unibs.it
-    generated_timestamp: 1736782185
+    generated_timestamp: 1739530870
   control_xacro:
     command:
       - position

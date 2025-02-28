@@ -1,19 +1,18 @@
 from launch_ros.actions import Node
-from launch_ros.parameter_descriptions import ParameterFile, ParameterValue
+from launch_ros.parameter_descriptions import ParameterFile
 from launch_ros.substitutions import FindPackageShare
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, TimerAction
 from launch.conditions import IfCondition, UnlessCondition
 from launch.substitutions import (
     AndSubstitution,
-    Command,
-    FindExecutable,
     LaunchConfiguration,
     NotSubstitution,
     PathJoinSubstitution,
 )
 
+from moveit_configs_utils import MoveItConfigsBuilder
 
 def launch_setup(context, *args, **kwargs):
     # Arguments passed to the robot description XACRO
@@ -27,6 +26,11 @@ def launch_setup(context, *args, **kwargs):
     use_tool_communication = LaunchConfiguration("use_tool_communication")
     tool_tcp_port = LaunchConfiguration("tool_tcp_port")
     headless_mode = LaunchConfiguration("headless_mode")
+    robotiq_use_socket_communication = LaunchConfiguration("robotiq_use_socket_communication")
+    robotiq_ip_address = LaunchConfiguration("robotiq_ip_address")
+    robotiq_port = LaunchConfiguration("robotiq_port")
+    robotiq_connection_timeout = LaunchConfiguration("robotiq_connection_timeout")
+    robotiq_activate_gripper_by_default = LaunchConfiguration("robotiq_activate_gripper_by_default")
 
     # Arguments passed just to the nodes
     runtime_config_package = LaunchConfiguration("runtime_config_package")
@@ -39,48 +43,52 @@ def launch_setup(context, *args, **kwargs):
     launch_rviz = LaunchConfiguration("launch_rviz")
     launch_dashboard_client = LaunchConfiguration("launch_dashboard_client")
 
-    # Robot description (UR Robot + Robotiq Gripper) from XACRO
-    robot_description_content = Command(
-        [
-            PathJoinSubstitution([FindExecutable(name="xacro")]),
-            " ",
-            PathJoinSubstitution([FindPackageShare(description_package), "urdf", description_file]),
-            " ",
-            "fake_ur:=",
-            fake_ur,
-            " ",
-            "fake_gripper:=",
-            fake_gripper,
-            " ",
-            "ur_type:=",
-            ur_type,
-            " ",
-            "robot_name:=",
-            robot_name,
-            " ",
-            "tf_prefix:=",
-            tf_prefix,
-            " ",
-            "robot_ip:=",
-            robot_ip,
-            " ",
-            "tool_device_name:=",
-            tool_device_name,
-            " ",
-            "use_tool_communication:=",
-            use_tool_communication,
-            " ",
-            "tool_tcp_port:=",
-            tool_tcp_port,
-            " ",
-            "headless_mode:=",  
-            headless_mode,
-            " ",
-        ]
+    srdf_path = PathJoinSubstitution([FindPackageShare('ur_robotiq_moveit_config'), 'config', 'ur_robotiq.srdf']).perform(context)
+    joint_limits_path = PathJoinSubstitution([FindPackageShare('ur_robotiq_moveit_config'), 'config', 'joint_limits.yaml']).perform(context)
+    moveit_controllers_path = PathJoinSubstitution([FindPackageShare('ur_robotiq_bringup'), 'config', 'moveit_controllers.yaml']).perform(context)
+    pilz_limits_path = PathJoinSubstitution([FindPackageShare('ur_robotiq_moveit_config'), 'config', 'pilz_cartesian_limits.yaml']).perform(context)
+
+    moveit_config = (
+        MoveItConfigsBuilder('ur_robotiq', package_name='ur_robotiq_moveit_config')
+        .robot_description(file_path=PathJoinSubstitution([FindPackageShare(description_package), "urdf", description_file]).perform(context),
+                            mappings= {"fake_ur": fake_ur,
+                                       "fake_gripper": fake_gripper, 
+                                       "ur_type": ur_type, 
+                                       "robot_name": robot_name, 
+                                       "tf_prefix": tf_prefix, 
+                                       "robot_ip": robot_ip, 
+                                       "tool_device_name": tool_device_name, 
+                                       "use_tool_communication": use_tool_communication, 
+                                       "tool_tcp_port": tool_tcp_port, 
+                                       "headless_mode": headless_mode,
+                                       "robotiq_use_socket_communication": robotiq_use_socket_communication,
+                                       "robotiq_ip_address": robotiq_ip_address,
+                                       "robotiq_port": robotiq_port,
+                                       "robotiq_connection_timeout": robotiq_connection_timeout,
+                                       "robotiq_activate_gripper_by_default": robotiq_activate_gripper_by_default,})
+        .robot_description_semantic(file_path=srdf_path)
+        .planning_scene_monitor(publish_robot_description=False,
+                                publish_robot_description_semantic=True,
+                                publish_planning_scene=True)
+        .planning_pipelines(default_planning_pipeline='ompl', pipelines=['ompl', 'chomp', 'pilz_industrial_motion_planner'])
+        .pilz_cartesian_limits(file_path=pilz_limits_path)
+        .joint_limits(file_path=joint_limits_path)
+        .trajectory_execution(file_path=moveit_controllers_path)
+        .robot_description_kinematics()
+        .to_moveit_configs()
     )
-    robot_description = {
-        "robot_description": ParameterValue(value=robot_description_content, value_type=str)
-    }
+
+    robot_description = moveit_config.robot_description
+
+    move_group_node = Node(
+        package='moveit_ros_move_group',
+        executable='move_group',
+        output='screen',
+        parameters=[
+            moveit_config.to_dict(),
+            # {"move_group": {"planning_plugin": "ompl_interface/OMPLPlanner"}},
+        ],
+    )
 
     initial_joint_controllers = PathJoinSubstitution(
         [FindPackageShare(runtime_config_package), "config", controllers_file]
@@ -191,13 +199,24 @@ def launch_setup(context, *args, **kwargs):
         parameters=[robot_description],
     )
 
-    rviz_node = Node(
-        package="rviz2",
-        condition=IfCondition(launch_rviz),
-        executable="rviz2",
-        name="rviz2",
-        output="log",
-        arguments=["-d", rviz_config_file],
+    rviz_node = TimerAction(
+        period=5.0,  # Delay in seconds
+        actions=[
+            Node(
+                package="rviz2",
+                condition=IfCondition(launch_rviz),
+                executable="rviz2",
+                name="rviz2",
+                output="log",
+                arguments=["-d", rviz_config_file],
+                parameters=[
+                    moveit_config.robot_description,
+                    moveit_config.robot_description_semantic,
+                    moveit_config.planning_pipelines,
+                    moveit_config.robot_description_kinematics,
+                ],
+            ),
+        ]
     )
 
     # Spawn controllers
@@ -216,7 +235,7 @@ def launch_setup(context, *args, **kwargs):
             + controllers,
         )
 
-    controllers_active = [
+    controllers_active = [ # scaled_joint_trajectory_controller is loaded and activated by default
         "joint_state_broadcaster",
         "io_and_status_controller",
         "speed_scaling_state_broadcaster",
@@ -226,7 +245,9 @@ def launch_setup(context, *args, **kwargs):
     ]
     controllers_inactive = [
         "forward_position_controller",
+        "joint_trajectory_controller",
         "robotiq_action_controller",
+        "robotiq_forward_command_controller",
     ]
 
     controller_spawners = [controller_spawner(controllers_active)] + [
@@ -261,6 +282,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
     nodes_to_start = [
+        move_group_node,
         control_node,
         ur_control_node,
         dashboard_client_node,
@@ -350,8 +372,42 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "headless_mode",
-            default_value="false",
+            default_value="true",
             description="Enable headless mode for robot control",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "robotiq_use_socket_communication",
+            description="[MANDATORY ARG] Use socket communication for Robotiq Gripper?",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            name="robotiq_ip_address",
+            default_value="192.168.10.2",
+            description="Ip address for socket communication",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            name="robotiq_port",
+            default_value="63352",
+            description="Port for socket communication",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            name="robotiq_connection_timeout",
+            default_value="30000",
+            description="Connection timeout for socket communication",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            name="robotiq_activate_gripper_by_default",
+            default_value="0",
+            description="Activate gripper by default?",
         )
     )
     declared_arguments.append(
@@ -387,7 +443,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "controller_spawner_timeout",
-            default_value="10",
+            default_value="100",
             description="Timeout used when spawning controllers.",
         )
     )
