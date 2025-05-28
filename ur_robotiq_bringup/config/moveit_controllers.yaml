@@ -34,5 +34,5 @@ moveit_simple_controller_manager:
       - ur10e_wrist_2_joint
       - ur10e_wrist_3_joint
     execution_duration_monitoring: false
-    allowed_execution_duration_scaling: 1000
-    allowed_goal_duration_margin: 1000
+    allowed_execution_duration_scaling: 1000.0
+    allowed_goal_duration_margin: 1000.0
