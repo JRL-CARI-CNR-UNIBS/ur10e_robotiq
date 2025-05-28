@@ -304,13 +304,15 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "fake_ur",
-            description="[MANDATORY ARG] Start robot with fake hardware mirroring command to its states.",
+            default_value="true",
+            description="Start robot with fake hardware mirroring command to its states.",
         )
     )
     declared_arguments.append(
         DeclareLaunchArgument(
             "fake_gripper",
-            description="[MANDATORY ARG] Start gripper with fake hardware mirroring command to its states.",
+            default_value="true",
+            description="Start gripper with fake hardware mirroring command to its states.",
         )
     )
     declared_arguments.append(
@@ -379,7 +381,8 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "robotiq_use_socket_communication",
-            description="[MANDATORY ARG] Use socket communication for Robotiq Gripper?",
+            default_value="false",
+            description="Use socket communication for Robotiq Gripper?",
         )
     )
     declared_arguments.append(
