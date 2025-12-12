@@ -148,11 +148,11 @@ forward_position_controller:
 robotiq_action_controller:
   ros__parameters:
     action_monitor_rate: 20.0
-    allow_stalling: false
+    allow_stalling: true
     goal_tolerance: 0.01
     joint: $(var tf_prefix)robotiq_85_left_knuckle_joint
     max_effort: 0.0
-    stall_timeout: 10.0
+    stall_timeout: 3.0
     stall_velocity_threshold: 0.001
 
 robotiq_activation_controller:
