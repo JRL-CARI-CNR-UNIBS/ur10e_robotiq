@@ -29,15 +29,7 @@
     sim_gazebo:=false
     sim_ignition:=false
     headless_mode:=false
-    initial_positions:=${dict(
-                          shoulder_pan_joint=0.0,
-                          shoulder_lift_joint=-1.57,
-                          elbow_joint=0.0,
-                          wrist_1_joint=-1.57,
-                          wrist_2_joint=0.0,
-                          wrist_3_joint=0.0,
-                          left_knuckle_joint=0.0
-                        )}
+    initial_positions:=${dict(shoulder_pan_joint=0.0,shoulder_lift_joint=-1.57,elbow_joint=0.0,wrist_1_joint=-1.57,wrist_2_joint=0.0,wrist_3_joint=0.0)}
     use_tool_communication:=false
     tool_voltage:=0
     tool_parity:=0
@@ -63,6 +55,7 @@
     robotiq_isaac_joint_commands:=/isaac_joint_commands
     robotiq_isaac_joint_states:=/isaac_joint_states
     robotiq_mock_sensor_commands:=false
+    ur_mock_sensor_commands:=false
     robotiq_include_ros2_control:=true
     robotiq_use_socket_communication:=false
     robotiq_ip_address:=192.168.10.2
@@ -72,8 +65,9 @@
 
   <!-- UR robot -->
   <xacro:include filename="$(find ur_description)/urdf/ur_macro.xacro"/>
-  <xacro:property name="initial_positions_file" default="${initial_positions}"/>
 
+
+    <xacro:arg name="force_abs_paths" default="false" />
   <xacro:ur_robot
     name="${robot_name}"
     tf_prefix="${tf_prefix}"
@@ -85,39 +79,108 @@
     safety_limits="${safety_limits}"
     safety_pos_margin="${safety_pos_margin}"
     safety_k_position="${safety_k_position}"
-    use_fake_hardware="${fake_ur}"
-    generate_ros2_control_tag="${generate_ros2_control_tag}"
-    transmission_hw_interface="${transmission_hw_interface}"
-    fake_sensor_commands="${fake_sensor_commands}"
-    sim_gazebo="${sim_gazebo}"
-    sim_ignition="${sim_ignition}"
-    headless_mode="${headless_mode}"
-    initial_positions="${xacro.load_yaml(initial_positions_file)}"
-    use_tool_communication="${use_tool_communication}"
-    tool_voltage="${tool_voltage}"
-    tool_parity="${tool_parity}"
-    tool_baud_rate="${tool_baud_rate}"
-    tool_stop_bits="${tool_stop_bits}"
-    tool_rx_idle_chars="${tool_rx_idle_chars}"
-    tool_tx_idle_chars="${tool_tx_idle_chars}"
-    tool_device_name="${tool_device_name}"
-    tool_tcp_port="${tool_tcp_port}"
-    robot_ip="${robot_ip}"
-    script_filename="${script_filename}"
-    output_recipe_filename="${output_recipe_filename}"
-    input_recipe_filename="${input_recipe_filename}"
-    reverse_port="${reverse_port}"
-    script_sender_port="${script_sender_port}"
-    reverse_ip="${reverse_ip}"
-    script_command_port="${script_command_port}"
-    trajectory_port="${trajectory_port}"
-    non_blocking_read="${non_blocking_read}"
-    keep_alive_count="${keep_alive_count}">
+    force_abs_paths="$(arg force_abs_paths)">
     <origin xyz="${origin_x} ${origin_y} ${origin_z}"
             rpy="${origin_roll} ${origin_pitch} ${origin_yaw}"/>
   </xacro:ur_robot>
-  
-  <!-- gripper -->
+
+    <xacro:if value="${fake_cameras}">
+    <xacro:include filename="$(find ur_description)/urdf/ros2_control_mock_hardware.xacro"/>
+    <xacro:ur_ros2_control
+            name="${robot_name}"
+            tf_prefix="${tf_prefix}"
+            mock_sensor_commands="${ur_mock_sensor_commands}"
+            initial_positions="${initial_positions}"
+    >
+    </xacro:ur_ros2_control>
+    <ros2_control name="MockHardwareSystem" type="system">
+      <hardware>
+        <plugin>mock_components/GenericSystem</plugin>
+        <param name="calculate_dynamics">false</param>
+        <param name="mock_gpio_commands">true</param>
+      </hardware>
+      <sensor name="ur10e_speed_scaling">
+        <state_interface name="speed_scaling_factor">
+          <!-- avoid NaNs at startup -->
+          <param name="initial_value">1.0</param>
+        </state_interface>
+      </sensor>
+
+      <gpio name="ur10e_gpio">
+
+        <!-- analog io type states -->
+        <state_interface name="analog_io_type_0"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="analog_io_type_1"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="analog_io_type_2"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="analog_io_type_3"><param name="initial_value">0.0</param></state_interface>
+
+        <!-- digital input states 0..17 -->
+        <state_interface name="digital_input_0"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_input_1"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_input_2"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_input_3"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_input_4"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_input_5"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_input_6"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_input_7"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_input_8"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_input_9"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_input_10"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_input_11"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_input_12"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_input_13"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_input_14"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_input_15"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_input_16"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_input_17"><param name="initial_value">0.0</param></state_interface>
+
+        <!-- digital output states 0..17 -->
+        <state_interface name="digital_output_0"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_output_1"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_output_2"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_output_3"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_output_4"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_output_5"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_output_6"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_output_7"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_output_8"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_output_9"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_output_10"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_output_11"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_output_12"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_output_13"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_output_14"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_output_15"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_output_16"><param name="initial_value">0.0</param></state_interface>
+        <state_interface name="digital_output_17"><param name="initial_value">0.0</param></state_interface>
+
+        <!-- commands you listed -->
+        <command_interface name="standard_analog_output_cmd_0"/>
+        <command_interface name="standard_analog_output_cmd_1"/>
+
+        <command_interface name="standard_digital_output_cmd_0"/>
+        <command_interface name="standard_digital_output_cmd_1"/>
+        <command_interface name="standard_digital_output_cmd_2"/>
+        <command_interface name="standard_digital_output_cmd_3"/>
+        <command_interface name="standard_digital_output_cmd_4"/>
+        <command_interface name="standard_digital_output_cmd_5"/>
+        <command_interface name="standard_digital_output_cmd_6"/>
+        <command_interface name="standard_digital_output_cmd_7"/>
+        <command_interface name="standard_digital_output_cmd_8"/>
+        <command_interface name="standard_digital_output_cmd_9"/>
+        <command_interface name="standard_digital_output_cmd_10"/>
+        <command_interface name="standard_digital_output_cmd_11"/>
+        <command_interface name="standard_digital_output_cmd_12"/>
+        <command_interface name="standard_digital_output_cmd_13"/>
+        <command_interface name="standard_digital_output_cmd_14"/>
+        <command_interface name="standard_digital_output_cmd_15"/>
+        <command_interface name="standard_digital_output_cmd_16"/>
+        <command_interface name="standard_digital_output_cmd_17"/>
+
+      </gpio>
+    </ros2_control>
+    </xacro:if>
+    <!-- gripper -->
   <xacro:include filename="$(find robotiq_description)/urdf/robotiq_2f_85_macro.urdf.xacro" />
 
   <joint name="rq_coupler_joint" type="fixed">
@@ -152,7 +215,10 @@
     <parent link="robotiq_coupler" />
     <child link = "robotiq_85_base_link" />
     <origin xyz="0.0 0.0 0.0" rpy="0 0 ${-0.5*pi}" />
-  </joint> -->
+  </joint>
+  
+  
+-->
 
   <xacro:robotiq_gripper
     name="robotiq_gripper"
@@ -163,14 +229,14 @@
     sim_isaac="${robotiq_sim_isaac}"
     isaac_joint_commands="${robotiq_isaac_joint_commands}"
     isaac_joint_states="${robotiq_isaac_joint_states}"
-    mock_sensor_commands="${robotiq_mock_sensor_commands}"
+    port="${robotiq_port}"
+    connection_timeout="${robotiq_connection_timeout}"
+    activate_gripper_by_default="${robotiq_activate_gripper_by_default}"
     include_ros2_control="${robotiq_include_ros2_control}"
     com_port="${tool_device_name}"
     use_socket_communication="${robotiq_use_socket_communication}"
     ip_address="${robotiq_ip_address}"
-    port="${robotiq_port}"
-    connection_timeout="${robotiq_connection_timeout}"
-    activate_gripper_by_default="${robotiq_activate_gripper_by_default}">
+    >
     <origin xyz="0 0 0" rpy="0 0 ${-0.5*pi}" />
   </xacro:robotiq_gripper>
 
