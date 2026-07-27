@@ -82,7 +82,7 @@
     sim_gazebo="${sim_gazebo}"
     sim_ignition="${sim_ignition}"
     headless_mode="$(arg headless_mode)"
-    initial_positions="${initial_positions_file}"
+    initial_positions="${xacro.load_yaml(initial_positions_file)}"
     use_tool_communication="$(arg use_tool_communication)"
     tool_voltage="${tool_voltage}"
     tool_parity="${tool_parity}"

@@ -1,7 +1,5 @@
 controller_manager:
   ros__parameters:
-    update_rate: 500.0
-
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
@@ -163,4 +161,3 @@ robotiq_forward_command_controller:
   ros__parameters:
     joint: $(var tf_prefix)robotiq_85_left_knuckle_joint
     interface_names: ['position', 'velocity', 'effort']
-

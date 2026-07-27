@@ -51,21 +51,21 @@ def launch_setup(context, *args, **kwargs):
     moveit_config = (
         MoveItConfigsBuilder('ur_robotiq', package_name='ur_robotiq_moveit_config')
         .robot_description(file_path=PathJoinSubstitution([FindPackageShare(description_package), "urdf", description_file]).perform(context),
-                            mappings= {"fake_ur": fake_ur,
-                                       "fake_gripper": fake_gripper, 
-                                       "ur_type": ur_type, 
-                                       "robot_name": robot_name, 
-                                       "tf_prefix": tf_prefix, 
-                                       "robot_ip": robot_ip, 
-                                       "tool_device_name": tool_device_name, 
-                                       "use_tool_communication": use_tool_communication, 
-                                       "tool_tcp_port": tool_tcp_port, 
-                                       "headless_mode": headless_mode,
-                                       "robotiq_use_socket_communication": robotiq_use_socket_communication,
-                                       "robotiq_ip_address": robotiq_ip_address,
-                                       "robotiq_port": robotiq_port,
-                                       "robotiq_connection_timeout": robotiq_connection_timeout,
-                                       "robotiq_activate_gripper_by_default": robotiq_activate_gripper_by_default,})
+                            mappings= {"fake_ur": fake_ur.perform(context),
+                                       "fake_gripper": fake_gripper.perform(context),
+                                       "ur_type": ur_type.perform(context),
+                                       "robot_name": robot_name.perform(context),
+                                       "tf_prefix": tf_prefix.perform(context),
+                                       "robot_ip": robot_ip.perform(context),
+                                       "tool_device_name": tool_device_name.perform(context),
+                                       "use_tool_communication": use_tool_communication.perform(context),
+                                       "tool_tcp_port": tool_tcp_port.perform(context),
+                                       "headless_mode": headless_mode.perform(context),
+                                       "robotiq_use_socket_communication": robotiq_use_socket_communication.perform(context),
+                                       "robotiq_ip_address": robotiq_ip_address.perform(context),
+                                       "robotiq_port": robotiq_port.perform(context),
+                                       "robotiq_connection_timeout": robotiq_connection_timeout.perform(context),
+                                       "robotiq_activate_gripper_by_default": robotiq_activate_gripper_by_default.perform(context),})
         .robot_description_semantic(file_path=srdf_path)
         .planning_scene_monitor(publish_robot_description=False,
                                 publish_robot_description_semantic=True,
@@ -99,18 +99,17 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # Define update rate for UR Robot
+    update_rate_file = ur_type.perform(context) + "_update_rate.yaml"
     update_rate_config_file = PathJoinSubstitution(
         [
             FindPackageShare(runtime_config_package),
             "config",
-            ur_type.perform(context) + "_update_rate.yaml",
+            update_rate_file,
         ]
     )
 
-    # Define if condition for both UR Robot and Robotiq Gripper fake hardware (AND)
-    fake_ur_and_gripper = AndSubstitution(fake_ur, fake_gripper)
-
-    # UR Robot nodes
+    # Jazzy loads both mock and real hardware through the standard controller
+    # manager node; robot_description selects the hardware plugins.
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
@@ -120,19 +119,6 @@ def launch_setup(context, *args, **kwargs):
             ParameterFile(initial_joint_controllers, allow_substs=True),
         ],
         output="screen",
-        condition=IfCondition(fake_ur_and_gripper),
-    )
-
-    ur_control_node = Node(
-        package="ur_robot_driver",
-        executable="ur_ros2_control_node",
-        parameters=[
-            robot_description,
-            update_rate_config_file,
-            ParameterFile(initial_joint_controllers, allow_substs=True),
-        ],
-        output="screen",
-        condition=UnlessCondition(fake_ur),
     )
 
     dashboard_client_node = Node(
@@ -152,7 +138,6 @@ def launch_setup(context, *args, **kwargs):
         condition=IfCondition(use_tool_communication),
         executable="tool_communication.py",
         name="ur_tool_comm",
-        output="screen",
         parameters=[
             {
                 "robot_ip": robot_ip,
@@ -160,10 +145,12 @@ def launch_setup(context, *args, **kwargs):
                 "device_name": tool_device_name,
             }
         ],
+        output="screen",
     )
 
     urscript_interface = Node(
         package="ur_robot_driver",
+        condition=UnlessCondition(fake_ur),
         executable="urscript_interface",
         parameters=[{"robot_ip": robot_ip}],
         output="screen",
@@ -284,7 +271,6 @@ def launch_setup(context, *args, **kwargs):
     nodes_to_start = [
         move_group_node,
         control_node,
-        ur_control_node,
         dashboard_client_node,
         tool_communication_node,
         controller_stopper_node,
